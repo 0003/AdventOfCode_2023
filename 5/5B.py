@@ -1,5 +1,5 @@
 """day 5"""
-import re
+import time
 
 maps = ['seed-to-soil map:',
         'soil-to-fertilizer map:',
@@ -25,28 +25,29 @@ def gen_dicts(a):
             destination, source, span = (int(s) for s in string.split())
             dict_of_maps[dict_map_name].append((destination, source, span))
         elif i == 0 or string == '':
-            print(f"passing or seeds on blanks {i} {string}")
+            pass
+            #print(f"passing or seeds on blanks {i} {string}")
         else: raise Exception(f"{dict_map_name} {destination} {source} {span} | index: {i}")
     return dict_of_maps
 
 def get_next(source, map, dict_of_maps):
-    print(f"source: {source} in map: {map}")
+    #print(f"source: {source} in map: {map}")
     mapping = dict_of_maps[map]
-    print(f'mapping: \n {mapping}')
+    #print(f'mapping: \n {mapping}')
     for i,s in enumerate(mapping):
         dest_beg, source_beg, span = s[0], s[1] , s[2]
         #lot_range = range(source_beg, source_beg + span) numbers wayy too big
-        print(f"Checking if {source} is in {source_beg} - {source_beg + span -1}")
+        #print(f"Checking if {source} is in {source_beg} - {source_beg + span -1}")
         if source_beg <= source <= source_beg + span - 1:
             if dest_beg < source_beg:
                 dif = source_beg - dest_beg
                 destination =  source - dif
-                print (f"location found: {destination} in map: {map}")
+                #print (f"location found: {destination} in map: {map}")
                 return destination
             elif dest_beg > source_beg:
                 dif = dest_beg - source_beg
                 destination = source + dif
-                print (f"location found: {destination} in map: {map}")
+                #print (f"location found: {destination} in map: {map}")
                 return destination
             else: raise Exception(f"this string cause problems {s}")
         elif source_beg > source:
@@ -57,7 +58,7 @@ def get_next(source, map, dict_of_maps):
             pass #not found
     #no mapping
     destination = source
-    print (f"location not found: {destination} equals source {source} in map: {map}")
+    #print (f"location not found: {destination} equals source {source} in map: {map}")
     return destination
 
 def input():
@@ -67,23 +68,33 @@ def input():
     return a
 
 def main():
+    start_time = time.time()
     a = input()
     #print(a[:])
     dict_of_maps = gen_dicts(a)
-    seeds = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
-    print(f"seeds: {seeds}")
+    seeds_ = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
+    seed_tuples =  [(seeds_[i], seeds_[i + 1]) for i in range(0, len(seeds_), 2)]
     locations = []
-    #map  soil / destination <- seed / source span
-    for seed in seeds:
-        source = seed #        
-        for map in maps:
-           source = get_next(source, map, dict_of_maps) #next source is prior desitation
-        location = source
-        locations.append(location)
-    
-    #do
-    print(f"locations: {locations}")
-    print(f"min location: {min(locations)}")
+    len_seeds = (len(seeds_) / 2) + sum([x[1] for x in seed_tuples])
+    i = 0
+    for seed_beg, span in seed_tuples:
+        source = seed_beg
+        decermenter = span
+        while decermenter > 0:
+            if i % 10e5 == 0:
+                print(f"Time elapsed as of {i} seeds : {time.time() - start_time}, Percent done: {i/len_seeds} on {len_seeds}")        
+            for map in maps:
+                source = get_next(source, map, dict_of_maps) #next source is prior desitation
+            location = source
+            locations.append(location)
+            decermenter -= 1
+            source = seed_beg + 1
+            i += 1
+        #map  soil / destination <- seed / source span
+
+        
+        print(f"locations: {locations}")
+        print(f"min location: {min(locations)}")
 
 
 main()
