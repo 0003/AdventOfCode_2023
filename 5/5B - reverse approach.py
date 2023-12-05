@@ -70,7 +70,16 @@ def main():
     a = input()
     #print(a[:])
     dict_of_maps = gen_dicts(a)
-    seeds = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
+
+    seeds_ = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
+    seed_tuples =  [(seeds_[i], seeds_[i + 1]) for i in range(0, len(seeds_), 2)]
+
+    #Trick is to start from the lowest location and find that seed. Then search if the seed is in there
+    #by going through each tuple and perform a z < winning seed < x +range
+
+    ## so start from bottome of maps, find the destination that is the lowest and journey through that to the 
+    #winning seed. I think I will need to refactor some functions.
+
     print(f"seeds: {seeds}")
     locations = []
     #map  soil / destination <- seed / source span
