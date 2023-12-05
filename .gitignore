@@ -1,3 +1,2 @@
-# Ignore all files except Python files and exclude txt files
+# Ignore all files txt files
 *.txt
-!*.py
