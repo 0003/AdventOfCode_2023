@@ -1,10 +1,5 @@
 """day 5"""
 import time
-import concurrent.futures
-import multiprocessing
-import os
-
-workers = multiprocessing.cpu_count() - 1
 
 maps = ['seed-to-soil map:',
         'soil-to-fertilizer map:',
@@ -17,11 +12,14 @@ maps = ['seed-to-soil map:',
 #map  soil / destination <- seed / source span
 
 def gen_dicts(a):
+    list_of_indexes = []
     dict_of_maps = {}
     for i, string in enumerate(a):
         if string in maps:
             dict_ix = i
             dict_map_name = string #might not do anything with this
+            #dict_map_name, dict_ix,
+            list_of_indexes.append((dict_map_name,dict_ix))
             dict_of_maps[dict_map_name] = [] # inititalize the dict
         elif string not in maps and i != 0 and string != '':
             destination, source, span = (int(s) for s in string.split())
@@ -69,24 +67,6 @@ def input():
         a = [i.strip() for i in a]
     return a
 
-def process_seed(seed_beg, span, dict_of_maps):
-    print(f"First Seed in worker: {seed_beg} covering {seed_beg + span -1}, span: {span}")
-    min_location = 9999999
-    seed = seed_beg #first seed
-    for e in range(0,span+1,1):
-        seed += e #first e should be zero
-        print(f"Starting seed journey: {seed_beg} + {e} =  {seed} ----------{os.getpid()}--------------{seed}")
-        source = seed
-        for map in maps:
-            old_source = source
-            source = get_next(source, map, dict_of_maps)
-            print(f"Seed {seed} journey: {old_source}->{source}")
-        print(f"Ending seed {seed} journey: {source} -----------------------------")
-        location = source
-        min_location = min(location,min_location)
-    
-    return [min_location]
-
 def main():
     start_time = time.time()
     a = input()
@@ -94,24 +74,22 @@ def main():
     dict_of_maps = gen_dicts(a)
     seeds_ = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
     seed_tuples =  [(seeds_[i], seeds_[i + 1]) for i in range(0, len(seeds_), 2)]
-    print(f"seed tuples: {seed_tuples}")
     locations = []
     len_seeds = (len(seeds_) / 2) + sum([x[1] for x in seed_tuples])
     i = 0
-
-    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:  # Use ProcessPoolExecutor for parallel processing
-        futures = []
-
-        for seed_beg, span in seed_tuples:
-            print( f"Processing seeds {seed_beg} - {seed_beg - 1 + span} ----- FUTURE")
-            futures.append(executor.submit(process_seed, seed_beg, span, dict_of_maps))
-
-        for future in concurrent.futures.as_completed(futures):
-            locations.extend(future.result())
-            i += len(future.result())
-            elapsed = time.time() - start_time
-            print(f"Time elapsed as of {i} seeds: {elapsed}, Percent done: {i / len_seeds} on {len_seeds} estimated time left: {i/elapsed} seconds")
-
+    for seed_beg, span in seed_tuples:
+        source = seed_beg
+        decermenter = span
+        while decermenter > 0:
+            if i % 10e5 == 0:
+                print(f"Time elapsed as of {i} seeds : {time.time() - start_time}, Percent done: {i/len_seeds} on {len_seeds}")        
+            for map in maps:
+                source = get_next(source, map, dict_of_maps) #next source is prior desitation
+            location = source
+            locations.append(location)
+            decermenter -= 1
+            source = seed_beg + 1
+            i += 1
         #map  soil / destination <- seed / source span
 
         
@@ -119,7 +97,4 @@ def main():
         print(f"min location: {min(locations)}")
 
 
-if __name__ == "__main__":
-    main()
-    multiprocessing.freeze_support()
-
+main()
