@@ -18,9 +18,6 @@ def do_quadratic(t,d_r):
     max_x = max(xs,key=abs)
 
     ### solution is between these
-    # min_x <= t  <= max_x
-    # min_x - max_x <= t - max_x
-    # minx_ + max_x <= t
 
     return max_x - min_x
 
