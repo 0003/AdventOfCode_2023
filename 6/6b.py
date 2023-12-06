@@ -1,5 +1,28 @@
 '--- Day 6: Wait For It ---'
 #works
+import cmath
+
+def do_quadratic(t,d_r):
+    #d_r = c_t *(t -c_t)
+    #d_r = -c_t**2 + t* c_t 
+    #0 = -c_t**2 + t* c_t  - d_r
+    a = -1
+    b = t
+    c = -d_r
+    discriminant = cmath.sqrt(b**2 - 4*a*c)
+
+    x1 = (-b + discriminant) / (2*a)
+    x2 = (-b - discriminant) / (2*a)
+    xs = [x1,x2]
+    min_x = min(xs,key=abs)
+    max_x = max(xs,key=abs)
+
+    ### solution is between these
+    # min_x <= t  <= max_x
+    # min_x - max_x <= t - max_x
+    # minx_ + max_x <= t
+
+    return max_x - min_x
 
 def race_d(c_t,t):
     #velo (d/t) = charge_time * time
@@ -17,6 +40,9 @@ def race_result(d,d_r):
 
 def part_b():
     t, d_r = get_input()
+    print(f"Doing it qith quadratic formula: {do_quadratic(t,d_r)}")
+
+
     race_wins = 0
     for c_t in range(t):
         trial_distance = race_d(c_t,t)
