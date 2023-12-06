@@ -60,14 +60,14 @@ def get_next(source, map, dict_of_maps):
     print (f"location not found: {destination} equals source {source} in map: {map}")
     return destination
 
-def input():
+def get_input():
     with open('5/input.txt') as f:
         a = f.readlines()
         a = [i.strip() for i in a]
     return a
 
 def main():
-    a = input()
+    a = get_input()
     #print(a[:])
     dict_of_maps = gen_dicts(a)
     seeds = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]

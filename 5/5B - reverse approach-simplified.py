@@ -60,7 +60,7 @@ def de_overlap_tuples(t):
             res[-1] = (last_t[0],max(last_t[1]),t[1])
     return res
             
-def input():
+def get_input():
     with open('5/input.txt') as f:
         a = f.readlines()
         a = [i.strip() for i in a]
@@ -73,7 +73,7 @@ def main():
     o start from bottome of maps, find the destination that is the lowest and journey through that to the 
     winning seed. I think I will need to refactor some functions. Overlaps in seeds """
 
-    a = input()
+    a = get_input()
     dict_of_maps = gen_dicts(a)
 
     seeds_ = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]

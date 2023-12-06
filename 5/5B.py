@@ -65,7 +65,7 @@ def get_next(source, map, dict_of_maps):
     #print (f"location not found: {destination} equals source {source} in map: {map}")
     return destination
 
-def input():
+def get_input():
     with open('5/test.txt') as f:
         a = f.readlines()
         a = [i.strip() for i in a]
@@ -91,7 +91,7 @@ def process_seed(seed_beg, span, dict_of_maps):
 
 def main():
     start_time = time.time()
-    a = input()
+    a = get_input()
     #print(a[:])
     dict_of_maps = gen_dicts(a)
     seeds_ = [int(x) for x in a[0].split(":")[1].split() if x.isdigit()]
