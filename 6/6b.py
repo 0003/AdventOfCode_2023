@@ -37,8 +37,7 @@ def race_result(d,d_r):
 
 def part_b():
     t, d_r = get_input()
-    print(f"Doing it qith quadratic formula: {do_quadratic(t,d_r)}")
-
+    print(f"Doing it with quadratic formula: {do_quadratic(t,d_r)}")
 
     race_wins = 0
     for c_t in range(t):
