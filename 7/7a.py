@@ -42,16 +42,16 @@ def ranker(hand1,hand2):
         raise TypeError(f"wrong inputs {hand1} and {hand2}") 
 
     if hand1.hand_strength > hand2.hand_strength:
-        return hand1
+        return 1
     elif hand1.hand_strength < hand2.hand_strength:
-        return hand2
+        return -1
     else:
         for i in range(5):
-            if hand1.hand_strength[i] > hand2.hand_strength[i]:
-                return hand1
-            elif hand1.hand_strength[i] < hand2.hand_strength[i]:
-                return hand2
-    return hand1
+            if hand1.single_cards_strengths[i] > hand2.single_cards_strengths[i]:
+                return 1
+            elif hand1.single_cards_strengths[i] < hand2.single_cards_strengths[i]:
+                return -1
+    return 0
 
 def get_input():
     with open('7/input.txt') as f:
