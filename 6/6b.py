@@ -1,6 +1,6 @@
 '--- Day 6: Wait For It ---'
 #works
-import cmath
+import math
 
 def do_quadratic(t,d_r):
     #d_r = c_t *(t -c_t)
@@ -9,16 +9,16 @@ def do_quadratic(t,d_r):
     a = -1
     b = t
     c = -d_r
-    discriminant = cmath.sqrt(b**2 - 4*a*c)
+    discriminant = math.sqrt(b**2 - 4*a*c)
 
     x1 = (-b + discriminant) / (2*a)
     x2 = (-b - discriminant) / (2*a)
     xs = [x1,x2]
-    min_x = min(xs,key=abs)
+    min_x = min(xs,key=abs) 
     max_x = max(xs,key=abs)
 
     ### solution is between these
-
+    print(f"x1={x1} x2={x2}")
     return max_x - min_x
 
 def race_d(c_t,t):
