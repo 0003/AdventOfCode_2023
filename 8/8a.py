@@ -5,12 +5,6 @@ import re
 start = "AAA"
 end = "ZZZ"
 
-class Node():
-    def __init__(self,n,l,r):
-        self.name = n
-        self.left = l
-        self.right = r
-
 def get_input(fi):
     with open(fi) as f:
         return f.readlines()
@@ -42,8 +36,7 @@ def main(fi):
         next_node = nodes[next_node][l_r(d)]
         if next_node == end:
             break
-        if fi == 'test2.txt' and count == 7:
-            break
+
     print(count)
     return count
 
