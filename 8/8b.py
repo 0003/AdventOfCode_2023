@@ -34,8 +34,8 @@ class Solution:
 
         for a in Solution.a_nodes:
             steps_to_z_list.append(Solution.get_steps_to_z(a))
+        
         lcm = steps_to_z_list[0]
-
         for n in steps_to_z_list[1:]:
             lcm = lcm * n // math.gcd(lcm, n)
         print(f'The lcm step is {lcm} of the exit point leg')
