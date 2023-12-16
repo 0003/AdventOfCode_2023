@@ -1,6 +1,7 @@
 '''--- Day 10: Pipe Maze ---'''
 #works
 import collections
+from aoc_tools import *
 
 PIPES = '|-FJL7S' #make sure code is case sensitive
 GROUND = '.' #cant be in pipe and ground
@@ -48,7 +49,7 @@ def get_starting_location(a) -> tuple:
 def valid_cell(a,i,j) -> bool:
     """Use with get_neighbors to check if a loc is out of range"""
     try:
-        if i>len(a)-1 or i<0 or j>len(a[0]) or j<0:
+        if i>len(a)-1 or i<0 or j>len(a[0])-1  or j<0:
             #print(f' i: {i} j: {j} {a[i][j]} is not valid cell')
             return False
         elif a[i][j] == ".":
@@ -95,24 +96,56 @@ def get_neighbors(a,i,j,b):
     
     return valid_neighbor_cells   
 
+def is_bounded(b,i,j,visited) ->  bool:
+    stack = [(i,j)]
+    bounded = True #default
+    
+    while stack:
+        ci, cj = stack.pop()
+        #check if valid cant use valid cell function from a because we need to also check against non 0's maybe
+        if ci <0 or cj <0 or ci >= len(b) or cj >= len(b[0]):
+            bounded = False
+            continue
+
+        if b[ci][cj] :
+            continue
+
+            continue
+        elif (ci,cj) not in visited:
+            visited.add((ci, cj))
+            stack.extend([(ci - 1, cj), # up
+                          (ci + 1, cj), # down
+                          (ci, cj - 1), #left
+                          (ci, cj + 1)]) #right
+
+    return bounded
+
+def get_counts_of_bounded_0s(b,a) -> int:
+    count = 0
+    visited = set() #this gets passed. Sets are important becaue they will contain i,j which are unique and dont need to be in there twice
+    d = [['*']*len(a[0]) for _ in range(len(a))]
+    for i in range(len(b)):
+        for j in range(len(b[0])):
+            if b[i][j] == 0 and (i,j) not in visited:
+                if is_bounded(b,i,j,visited):
+                    count +=1
+                    d[i][j] = f'{RED_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}'
+                else:
+                    try:
+                        d[i][j] = f'{GREEN_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}'
+                    except IndexError: 
+                        pass
+            else:
+                try:
+                    d[i][j] = f'{BLUE_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}'
+                except IndexError: 
+                    pass
+
+    print_2darrays_side_by_side(d,a,b) #since d has ANSI colors need to do this to make it print okay
+    return count
+
 """ Utility Functions """
-   
-
-""" Debug Functions """
-def print_map(a,og_a,ci=None,cj=None):
-
-    records_length = len(a)
-    width_length = len(a[0])
-    print("  " +''.join( str(j)[-1] for j in range(2*width_length)))
-    print("  "+''.join( "V" for _ in range(2*width_length)))     
-    for i in range(records_length):
-        j_string = str(i) + ">"
-        for j in range(width_length):
-            j_string += a[i][j]
-        for jj in range(width_length):
-            j_string += og_a[i][jj]
-        print(j_string)
-    return
+#Using AOC_Tools
 
 """ Main """
 def get_input(fi):
@@ -136,7 +169,9 @@ def main(file,comment):
     b = [[0]*len(a[0]) for _ in range(len(a))]
     b[s_tup[0]][s_tup[1]] = "S"
     c = ['~'*len(a[0]) for _ in range(len(a))]
-    while steps < len(a) * len(a[0]): #this represents searching every space
+
+    stop_flag = False
+    while steps < (len(a) * len(a[0])) or stop_flag: #this represents searching every space
         steps += 1
         next_positions = []
         for cij in cursor_positions:
@@ -145,47 +180,49 @@ def main(file,comment):
             next_positions.extend(nexts)
             for n in next_positions:
                 b[n[0]][n[1]] = steps # to check
-                c[n[0]] = ''.join(map(str, b[n[0]]))
+                c[n[0]] = ''.join(map(str, b[n[0]]))  #this is broken
             #print_map(c,a)
+            #print_2darrays_side_by_side(b,a)
             if s_tup not in nexts:
-                print(steps)
+                print(f"steps {steps}")
                 cursor_positions = next_positions
             else:
+                stop_flag = True
                 print(f"Total steps {steps}.")
                 print("~~~~~PRINTING FINAL MAP~~~~")
-                for row in c:
-                    print(row)
                 return
     print(f"Total steps {steps}.")
     print("~~~~~PRINTING FINAL MAP~~~~")
-    print_map(c,a)
-
+    #print_map(c,a)
+    print_2darrays_side_by_side(b,a)
     furthest_step  = 0
     for row_vs in b:
         for col_v in row_vs:
             if col_v != "S":
                 furthest_step = max(col_v,furthest_step)
     print(f"furtherst step: {furthest_step}")
-    return furthest_step
+
+    print(f"{RED_AOCTOOLS} STARTING  PART TWO {RESET_AOCTOOLS}")
+
+    #need to get a bound for S and then refigure out the depth first search
+    count = get_counts_of_bounded_0s(b,a)
+    print(f"counts = {count}")
+    return count
+
 
 def tests():
-    #main('10/test1S.txt',"s in bottom corner")
-    #print("-"*80)
-   # main('10/test2.txt', "probably harder")
-    #print("-"*80)
-    main('days/10/test3.txt', print("hard test"))
-    #print("-"*80)'''
-    #main('10/testw.txt', "simple square seems to work") 
-    #main('10/testw1.txt'," square with vertical and horizontals") 
-    #main('10/testw2.txt'," S verticals to an S")
-    #main('10/testmisc.txt',"these are scratch tests") 
+    """---------------  Part 2 tests ---------------------------"""
+    #main('10/2test1.txt',"first test")
+    #main('10/2test2.txt',"second test")
+    #main('10/2test3.txt',"third test")
+    main('10/2testw1.txt', "making the pip be narroweer")
 
-def part_1():   
-    main('days/10/input.txt',"NA")
+def part_2():   
+    main('10/input.txt',"NA")
 
-#tests()
+tests()
     
-part_1()
+#part_2()
 
 
 

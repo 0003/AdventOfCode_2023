@@ -61,7 +61,7 @@ def get_next(source, map, dict_of_maps):
     return destination
 
 def get_input():
-    with open('5/input.txt') as f:
+    with open('days/5/input.txt') as f:
         a = f.readlines()
         a = [i.strip() for i in a]
     return a
