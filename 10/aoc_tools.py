@@ -25,17 +25,25 @@ def length_without_ansi(s):
     # Return the length of the string without ANSI codes
     return len(cleaned_string)
 
-def print_2darrays_side_by_side(array1, array2):
+def print_with_padding(element, max_width):
+    # Calculate the length of the ANSI escape codes
+    ansi_escape_codes_length = len('\x1b[92m') + len('\x1b[0m')
+
+    # Adjust max_width to account for the non-visible characters of the ANSI codes
+    adjusted_width = max_width + ansi_escape_codes_length
+
+    # Print the element with the adjusted width
+    print(f"{element:>{adjusted_width}}", end=" ")
+
+def print_2darrays_side_by_side(array1, array2, a1_has_ansi=False):
     """ Takes 2 arrays and displays them. It's good for spacing"""
     # Find the maximum width of any number in array2 for proper spacing
-
     max_width = max(
             length_without_ansi(str(element))
             for array in (array1, array2)
             for row in array
             for element in row)
         
-
     # Determine the number of rows and columns
     num_rows = len(array1)
     num_columns = len(array1[0])
@@ -49,7 +57,10 @@ def print_2darrays_side_by_side(array1, array2):
         print(f'{i:{len(str(num_rows))}}:',end="")
         # Print array1 elements
         for element in array1[i]:
-            print(f"{element:>{max_width}}", end=" ")
+            if a1_has_ansi:
+                print_with_padding(element,max_width)
+            else:
+                print(f"{element:>{max_width}}", end=" ")
         for element in array2[i]:
             print(f"{element:>{max_width}}", end=" ")
         print()
