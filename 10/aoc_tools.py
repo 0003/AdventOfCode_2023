@@ -1,3 +1,5 @@
+import re
+
 # ANSI escape codes for some colors
 RED_AOCTOOLS = '\033[91m'
 GREEN_AOCTOOLS = '\033[92m'
@@ -15,23 +17,23 @@ print(GREEN + "This is green text." + RESET)
 print(YELLOW + "This is yellow text." + RESET)
 """
 
-def print_2darrays_side_by_side(array1, array2,array1_sub_array3=None):
+def length_without_ansi(s):
+    # Regular expression to match ANSI escape codes
+    ansi_escape = re.compile(r'\x1b\[([0-9A-Za-z;]*m)')
+    # Remove the ANSI escape codes
+    cleaned_string = ansi_escape.sub('', s)
+    # Return the length of the string without ANSI codes
+    return len(cleaned_string)
+
+def print_2darrays_side_by_side(array1, array2):
     """ Takes 2 arrays and displays them. It's good for spacing"""
     # Find the maximum width of any number in array2 for proper spacing
-    
-    if array1_sub_array3 == None:
-        max_width = max(
-                len(str(element))
-                for array in (array1, array2)
-                for row in array
-                for element in row)
-    #If you make somewhere non character affecting changes, such as using ANSI colors, you need to have flag be True
-    else:
-        max_width = max(
-                len(str(element))
-                for array in (array1_sub_array3, array2)
-                for row in array
-                for element in row)
+
+    max_width = max(
+            length_without_ansi(str(element))
+            for array in (array1, array2)
+            for row in array
+            for element in row)
         
 
     # Determine the number of rows and columns
@@ -56,4 +58,3 @@ def print_2darrays_side_by_side(array1, array2,array1_sub_array3=None):
 array2 = [[123, 45, 6], [78900000, 12, 345]]
 
 print_2darrays_side_by_side(array1, array2)"""
-

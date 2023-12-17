@@ -141,7 +141,7 @@ def get_counts_of_bounded_0s(b,a) -> int:
                 except IndexError: 
                     pass
 
-    print_2darrays_side_by_side(d,a,b) #since d has ANSI colors need to do this to make it print okay
+    print_2darrays_side_by_side(d,a) #since d has ANSI colors need to do this to make it print okay
     return count
 
 """ Utility Functions """
