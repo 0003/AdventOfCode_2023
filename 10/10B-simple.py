@@ -96,105 +96,126 @@ def get_neighbors(a,i,j,b):
     
     return valid_neighbor_cells
 
-### need to check if a point is in the area
+# This is the main part 2 function It needs an ordered list of pipe tuples
+def is_point_inside_loop(oij, pipe_loop_ijs) -> bool:
+    oi, oj = oij
+    inside = False
+
+    for ix in range(len(pipe_loop_ijs)):
+        i1, j1 = pipe_loop_ijs[ix]
+        i2, j2 = pipe_loop_ijs[(ix + 1) % len(pipe_loop_ijs)]
+
+        if oj > min(j1, j2) and oj < max(j1, j2) and oi < max(i1, i2):
+            if j1 != j2:
+                #https://youtu.be/RSXM9bgqxJM?si=wd6XCVyH161i2BPy&t=207
+                #----------(x1) + ----(i_inters)/
+                i_inters = i1 + ( (oj - j1) * ((i2 - i1) / (j2 - j1)) ) 
+            # I think this will always bee the case but coding out all of this
+                #also if i1 == i1 then the intercept portion of i to add is zero
+            if i1 == i2 or oi < i_inters:
+                #first hit is odd number so since we begin with False, it returns true on odd hits
+                inside = not inside  
+    return 1
 
 
-def is_loop(a,i,j) -> bool or set: #this is essentially a rewrite of part 1 main
-    assert a[i][j] in PIPES
-    start = (i,j) # we will check if each ci, cj is this and not in visited
-    stack = [start]
-    visited = set()
-    b_ =  [[0]*len(a[0]) for _ in range(len(a))] #this is because I previosuly coded part 1 to take a b and check if something is 0
+def sort_loop(points): #this runs in n log n time I think
+    if not points:
+        return []
+    #create a dictionary mapping points to their adjacent points
+    def create_adjacency_dict(points):
+        adj_dict = {}
+        for point in points:
+            i, j = point
+            for di, dj in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                adjacent = (i + di, j + dj)
+                if adjacent in points:
+                    adj_dict.setdefault(point, set()).add(adjacent) #this is a key coding pattern. use more often
+        return adj_dict
 
-    while stack:
-        ci , cj = stack.pop()
-        if (ci,cj) == start and (ci,cj) in visited:
-            raise Exception("this should not happen - should be caught later")
-            return visited
+    points_set = set(points) #probably not needed 
+    adj_dict = create_adjacency_dict(points_set)
+
+    sorted_loop = [points[0]]
+    points_set.remove(points[0])
+
+    # Build the sorted loop
+    while points_set:
+        last_point = sorted_loop[-1]
+        next_points = adj_dict.get(last_point, set())
+        intersection = next_points.intersection(points_set)
+        
+        # Check if the intersection is not empty
+        if intersection: #this was a bug before
+            next_point = intersection.pop()
         else:
-            visited.add((ci,cj))
-        #check if valid dont think this will happen but checking regardless
-        if ci <0 or cj <0 or ci >= len(a) or cj >= len(a[0]):
-            #ouf of grid so invalid and not a loop but we wont break because the key check is that the loop completes
-            continue
-        neighbors = get_neighbors(a,ci,cj,b_)
-        if neighbors == []:
-            return False # no valid neighbors so this is not a loop
-        for n in neighbors:
-            ni, nj = n
-            if (ni,nj) not in visited:
-                stack.extend([n])
-    return visited
-        
+            next_point = None
+        if not next_point:
+            break
 
-def is_among_bounded(b,i,j,a,oijs) ->  set: # (bounded_count, visited, oijs)
-    assert b[i][j] == 0
-    stack = [(i,j)]
-    bounded_count = 0
-    oijs = set()
-    first_pipe_ij = None
-    visited = set()
+        sorted_loop.append(next_point)
+        points_set.remove(next_point) #key to do
 
-    while stack:
-        ci, cj = stack.pop()
-        #check if valid indexes cant use valid cell function from a because we need to also check against non 0's maybe
-        if ci <0 or cj <0 or ci >= len(b) or cj >= len(b[0]):
-            continue
+    return sorted_loop
 
-        if b[ci][cj] != 0: 
-            visited.add((ci, cj))
-            if not first_pipe_ij:
-                first_pipe_ij = ci,cj #this will be the pip we check the loop on
-            continue
-        
-        elif (ci,cj) not in visited:
-            bounded_count += 1
-            visited.add((ci, cj))
-            oijs.add((ci,cj))
-            stack.extend([(ci - 1, cj), # up
-                          (ci + 1, cj), # down
-                          (ci, cj - 1), #left
-                          (ci, cj + 1)]) #right
 
-    #once done  
-    #get a border and traverse to ensure it's a complete loop adjacent to members of the o's
-    #for each 9 block is a connect pipe!
-    
-    pi, pj = first_pipe_ij
-    loop_tuples = is_loop(a,pi,pj)
-    if not loop_tuples: #either False or a set of tuples            
-        return (0, oijs)
-    elif loop_tuples:
-        #chec if oijs in loop_tuples and if so, then add bounded_count to total
-### need to check if a point is in the area
+def extract_vertices(pipe_loop_ijs): # should be linear time
+    """ This just reduces the space"""
+    if len(pipe_loop_ijs) < 3:  # If there are less than 3 points, all are vertices. Just in case I want to test more or use later
+        return pipe_loop_ijs
 
+    vertices = [pipe_loop_ijs[0]]  # Start with the first point
+
+    for ix in range(1, len(pipe_loop_ijs) - 1): #because we already pull one out
+        prev_i, prev_j = pipe_loop_ijs[ix - 1]
+        i, j = pipe_loop_ijs[ix]
+        next_i, next_j = pipe_loop_ijs[(ix + 1) % len(pipe_loop_ijs)] #cycling at the end
+
+        if (i != prev_i and i != next_i) or (j != prev_j and j != next_j):
+            vertices.append((i, j))
+
+    vertices.append(pipe_loop_ijs[-1])  # Add the last point
+
+    return vertices
 
 
 def get_count_of_os(b,a,search_space) -> int:
-    count = 0
-    visited = set() #this gets passed. Sets are important becaue they will contain i,j which are unique and dont need to be in there twice
-    oijs_master = set()
-    oijs = set()
-    d = [['*']*len(a[0]) for _ in range(len(a))]
-    aa = [['*']*len(a[0]) for _ in range(len(a))]
-    for i in search_space[0]:
-        for j in search_space[1]:
-            if b[i][j] == 0 and (i,j) not in visited:
-                bounded_count, oijs = is_among_bounded(b,i,j,a,oijs)
-                for ij in oijs:
-                    if ij not in visited:
-                        count += 1
-                        d[i][j] = f"{RED_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
-                        aa[i][j] = f"{RED_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
-                        oijs_master.add((i,j))
-                        visited.add((i,j)) # avoids double counting
+    ############# for each o race trace against
+    pipe_loop = [] 
     for i in range(len(b)):
         for j in range(len(b[0])):
-            if (i,j) not in oijs_master:
-                d[i][j] = f"{GREEN_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
-                aa[i][j] = f"{GREEN_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+            if b[i][j] == "S":
+                pipe_loop.append((i, j))
+            elif b[i][j] > 0:
+                pipe_loop.append((i, j))
 
-    print_2darrays_side_by_side(d,aa,a1_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
+    pipe_loop_ijs = sort_loop(pipe_loop)
+    pipe_loop_ijs = extract_vertices(pipe_loop_ijs)
+    
+    d = [['*']*len(a[0]) for _ in range(len(a))]
+    aa = [['*']*len(a[0]) for _ in range(len(a))]
+
+    count = 0
+    for i in search_space[0]:
+        for j in search_space[1]:
+            oij = (i,j)
+            if b[i][j] == 0:
+                if is_point_inside_loop(oij,pipe_loop_ijs):
+                    count +=1
+                    d[i][j] = f"{RED_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
+                    aa[i][j] = f"{RED_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+                else:    
+                    d[i][j] = f"{GREEN_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
+                    aa[i][j] = f"{GREEN_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+            else:
+                d[i][j] = f"{BLUE_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
+                aa[i][j] = f"{BLUE_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+    for i in range(len(a)):
+        for j in range(len(a[0])):
+            if d[i][j] == "*":
+                d[i][j] = f"{YELLOW_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
+                aa[i][j] = f"{YELLOW_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+
+    print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     return count
 
 """ Utility Functions """

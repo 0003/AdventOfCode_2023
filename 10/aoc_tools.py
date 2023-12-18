@@ -35,7 +35,7 @@ def print_with_padding(element, max_width):
     # Print the element with the adjusted width
     print(f"{element:>{adjusted_width}}", end=" ")
 
-def print_2darrays_side_by_side(array1, array2, a1_has_ansi=False):
+def print_2darrays_side_by_side(array1, array2, a1_has_ansi=False, a2_has_ansi=False):
     """ Takes 2 arrays and displays them. It's good for spacing"""
     # Find the maximum width of any number in array2 for proper spacing
     max_width = max(
@@ -62,7 +62,10 @@ def print_2darrays_side_by_side(array1, array2, a1_has_ansi=False):
             else:
                 print(f"{element:>{max_width}}", end=" ")
         for element in array2[i]:
-            print(f"{element:>{max_width}}", end=" ")
+            if a2_has_ansi:
+                print_with_padding(element,max_width)
+            else: 
+                print(f"{element:>{max_width}}", end=" ")
         print()
 
 """array1 = [['a', 'b', 'c'], ['d', 'e', 'f']]
