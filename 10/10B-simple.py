@@ -97,6 +97,30 @@ def get_neighbors(a,i,j,b):
     return valid_neighbor_cells
 
 # This is the main part 2 function It needs an ordered list of pipe tuples
+
+def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
+    oi, oj = oij
+    inside = False
+
+    #probably going to have to logic this out.
+
+    #need to do a check on borders
+    pipe_ijs_for_crossing_bottom =  set([i[0] for i in pipe_loop_ijs if i[0] > oi and i[1] == oj and a[i[0]][i[1]] not in "-LJ" ])
+    pipe_ijs_for_crossing_top = set([i[0] for i in pipe_loop_ijs if i[0] < oi and i[1] == oj and a[i[0]][i[1]] not in "-LJ"])
+    pipe_ijs_for_crossing_right = set([i[1] for i in pipe_loop_ijs if i[1] > oj and i[0] == oi and a[i[0]][i[1]] not in "|F7"])
+    pipe_ijs_for_crossing_left = set([i[1] for i in pipe_loop_ijs if i[1] < oj and i[0] == oi and a[i[0]][i[1]] not in "|F7" ])
+
+    crosses = [pipe_ijs_for_crossing_bottom,pipe_ijs_for_crossing_top, pipe_ijs_for_crossing_right,pipe_ijs_for_crossing_left]
+    cross_counts = [len(c) for c in crosses]
+    median_cross_count =  sorted(cross_counts,reverse=True)[1] #median rounding to the most
+    print(f'oij: {oij} crossed this many times: {cross_counts}')
+
+    if median_cross_count % 2 == 0:
+        return 0
+    else:
+        return 1
+    
+
 def is_point_inside_loop(oij, pipe_loop_ijs) -> bool:
     oi, oj = oij
     inside = False
@@ -180,27 +204,32 @@ def extract_vertices(pipe_loop_ijs): # should be linear time
 
 def get_count_of_os(b,a,search_space) -> int:
     ############# for each o race trace against
-    pipe_loop = [] 
+    pipe_loop_ijs = [] 
     for i in range(len(b)):
         for j in range(len(b[0])):
             if b[i][j] == "S":
-                pipe_loop.append((i, j))
+                pipe_loop_ijs.append((i, j))
             elif b[i][j] > 0:
-                pipe_loop.append((i, j))
+                pipe_loop_ijs.append((i, j))
 
-    pipe_loop_ijs = sort_loop(pipe_loop)
-    pipe_loop_ijs = extract_vertices(pipe_loop_ijs)
+    #pipe_loop_ijs = sort_loop(pipe_loop)
+    #pipe_loop_ijs = extract_vertices(pipe_loop_ijs)
     
     d = [['*']*len(a[0]) for _ in range(len(a))]
     aa = [['*']*len(a[0]) for _ in range(len(a))]
 
     count = 0
-    for i in search_space[0]:
-        for j in search_space[1]:
+     
+    """for i in search_space[0]:
+        for j in search_space[1]:"""
+    
+    for i in range(len(a)):
+        for j in range(len(a[0])):
             oij = (i,j)
-            if b[i][j] == 0:
-                if is_point_inside_loop(oij,pipe_loop_ijs):
-                    count +=1
+            if oij not in pipe_loop_ijs :
+                if is_point_inside_loop_simple(oij,pipe_loop_ijs,a):
+                #if is_point_inside_loop(oij,pipe_loop_ijs):
+                    count += 1
                     d[i][j] = f"{RED_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                     aa[i][j] = f"{RED_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
                 else:    
@@ -214,6 +243,9 @@ def get_count_of_os(b,a,search_space) -> int:
             if d[i][j] == "*":
                 d[i][j] = f"{YELLOW_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{YELLOW_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+            if (i,j) in pipe_loop_ijs:
+                d[i][j] = f"{MAGENTA_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
+                aa[i][j] = f"{MAGENTA_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
 
     print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     return count
@@ -298,7 +330,8 @@ def tests():
     #main('10/2test1.txt',"first test")
     #main('10/2test2.txt',"second test")
     #main('10/2test3.txt',"third test")
-    main('10/2testw1.txt', "making the pip be narroweer")
+    #main('10/2testw1.txt', "making the pip be narroweer")
+    main('10/2testw2.txt', "making the pip be narroweer and with junk")
 
 def part_2():   
     main('10/input.txt',"NA")
