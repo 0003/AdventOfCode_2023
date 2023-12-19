@@ -60,7 +60,15 @@ def valid_cell(a,i,j) -> bool:
             return True
     except IndexError:
         return False
-    
+
+def generate_connections(connections):
+    #takes just one ij tuple, then puts them in a set, iterates it into i,j and then adds the inverse to the set.
+    extended_connections = set(connections)
+    for i, j in connections:
+        inverse = (-i, -j)
+        extended_connections.add(inverse)
+    return extended_connections
+
 def valid_pipe_connection(a,ci,cj,ni,nj,b):
     # We know S is a valid pipe so it must make a valid loop
     #A pipe connects if either both share an i or a j direction (absolute values)
@@ -71,11 +79,12 @@ def valid_pipe_connection(a,ci,cj,ni,nj,b):
     if c !=GROUND[0] and n !=GROUND[0] and b[ni][nj] == 0 and b[ni][nj] != "S":
         r = symbol_relation(a,ci,cj,ni,nj)
         n_directions = PIPE_D[n]
-        if r in n_directions:
-            print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are valid pipe conns because their relation {r} is in {n}\'s {n_directions} ')
+        c_directions = generate_connections(PIPE_D[c])
+        if r in n_directions and r in c_directions:
+            print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are valid pipe conns because their relation {r} is in {n}\'s {n_directions} and {c}\'s {c_directions}  ')
             return True
         else:
-            print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are NOT valid pipe conns because their relation {r} is NOT in {n}\'s {n_directions} ')
+            print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are NOT valid pipe conns because their relation {r} is NOT in {n}\'s {n_directions} and {c}\'s {c_directions}  ')
             return False
     else:
         print(f'{c} and {n} are not valid pipes because at least one is a "." or b[ni][nj] = {b[ni][nj]} which may be zero or S')
@@ -96,114 +105,94 @@ def get_neighbors(a,i,j,b):
     
     return valid_neighbor_cells
 
-# This is the main part 2 function It needs an ordered list of pipe tuples
+# This is the main part 2 function 
 
 def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
     oi, oj = oij
-    inside = False
+    inside = True
 
-    #probably going to have to logic this out.
+    count_d = collections.Counter()
+    for i in pipe_loop_ijs:
+        if i[1] > oj and i[0] == oi and a[i[0]][i[1]] in "|F7LJ":
+            count_d[ a[ i[0]] [i[1]] ] +=1
 
-    #need to do a check on borders
-    pipe_ijs_for_crossing_bottom =  set([i[0] for i in pipe_loop_ijs if i[0] > oi and i[1] == oj and a[i[0]][i[1]] not in "-LJ" ])
-    pipe_ijs_for_crossing_top = set([i[0] for i in pipe_loop_ijs if i[0] < oi and i[1] == oj and a[i[0]][i[1]] not in "-LJ"])
-    pipe_ijs_for_crossing_right = set([i[1] for i in pipe_loop_ijs if i[1] > oj and i[0] == oi and a[i[0]][i[1]] not in "|F7"])
-    pipe_ijs_for_crossing_left = set([i[1] for i in pipe_loop_ijs if i[1] < oj and i[0] == oi and a[i[0]][i[1]] not in "|F7" ])
+    cF7 = count_d["F"] + count_d["7"] #need even for it to be inside
+    cLJ = count_d["L"] + count_d["J"] #need even for it to be inside
+    c_vertical_pipe =  count_d["|"] #need odd for it to be inside
 
-    crosses = [pipe_ijs_for_crossing_bottom,pipe_ijs_for_crossing_top, pipe_ijs_for_crossing_right,pipe_ijs_for_crossing_left]
-    cross_counts = [len(c) for c in crosses]
-    median_cross_count =  sorted(cross_counts,reverse=True)[1] #median rounding to the most
-    print(f'oij: {oij} crossed this many times: {cross_counts}')
+    #if your regular pipe is even then you're outside
+    if c_vertical_pipe % 2 == 0:
+        inside = not inside # reverse it
+    
+    #if your edge pipe is even then you're outside
+    if cF7 % 2 == 0:
+        inside = not inside
+    
+    if cLJ % 2 == 0:
+        inside = not inside
+    
+    return inside
+    
+def find_s_symbol(ij,a):
+    #neighbors should just use DIRECTIONS but..
+    Si, Sj = ij
 
-    if median_cross_count % 2 == 0:
-        return 0
+    #relations
+    top =  (Si - 1, Sj)
+    bottom = (Si + 1, Sj)
+    left = (Si , Sj - 1)
+    right = (Si , Sj + 1)
+
+#this is in opposite order
+    s_directions = [(1,0), (-1,0), (0,-1),(0,1)]
+
+    #GET THE RELATION FFROM ABOVE and CHECK IF THE NEIGHBOR SUMBOL MATCHES IT. SO S7  has relation (0,1) and a 7 has (0,1) in its Pipe_D
+    neighbors_ijs = [top, bottom, left, right]
+    connecting_neighbors = [False,False,False,False]
+
+    for i in range(len(neighbors_ijs)):
+        ni, nj = neighbors_ijs[i]
+        ns = a[ni][nj]
+
+        if not valid_cell(a,ni,nj):
+            continue # this is either out of range our a "."
+        nr_set = set()
+        for nr in PIPE_D[ns]:
+            nr_set.add(nr) ###ned to figure this out
+        dir_set = set( [s_directions[i]])
+
+        intersection = nr_set & dir_set
+        if intersection:
+            connecting_neighbors[i] = True
+                                #top bot    left  right
+    if connecting_neighbors == [True, True, False, False]:
+        s_symbol = "|"
+    elif connecting_neighbors == [True, False, True, False]:
+        s_symbol = "J"
+    elif connecting_neighbors == [True, False, False, True]:
+        s_symbol = "L"
+    elif connecting_neighbors == [False, False, True, True]:
+        s_symbol = "-"
+    elif connecting_neighbors == [False, True, False, True]:
+        s_symbol = "F"
+    elif connecting_neighbors == [False, True, True, False]:
+        s_symbol = "7"
     else:
-        return 1
+        raise Exception("Should not happen")
+
+    print(f"{MAGENTA_AOCTOOLS} S is a {s_symbol} {RESET_AOCTOOLS}")
+
+    return s_symbol
     
 
-def is_point_inside_loop(oij, pipe_loop_ijs) -> bool:
-    oi, oj = oij
-    inside = False
-
-    for ix in range(len(pipe_loop_ijs)):
-        i1, j1 = pipe_loop_ijs[ix]
-        i2, j2 = pipe_loop_ijs[(ix + 1) % len(pipe_loop_ijs)]
-
-        if oj > min(j1, j2) and oj < max(j1, j2) and oi < max(i1, i2):
-            if j1 != j2:
-                #https://youtu.be/RSXM9bgqxJM?si=wd6XCVyH161i2BPy&t=207
-                #----------(x1) + ----(i_inters)/
-                i_inters = i1 + ( (oj - j1) * ((i2 - i1) / (j2 - j1)) ) 
-            # I think this will always bee the case but coding out all of this
-                #also if i1 == i1 then the intercept portion of i to add is zero
-            if i1 == i2 or oi < i_inters:
-                #first hit is odd number so since we begin with False, it returns true on odd hits
-                inside = not inside  
-    return 1
-
-
-def sort_loop(points): #this runs in n log n time I think
-    if not points:
-        return []
-    #create a dictionary mapping points to their adjacent points
-    def create_adjacency_dict(points):
-        adj_dict = {}
-        for point in points:
-            i, j = point
-            for di, dj in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                adjacent = (i + di, j + dj)
-                if adjacent in points:
-                    adj_dict.setdefault(point, set()).add(adjacent) #this is a key coding pattern. use more often
-        return adj_dict
-
-    points_set = set(points) #probably not needed 
-    adj_dict = create_adjacency_dict(points_set)
-
-    sorted_loop = [points[0]]
-    points_set.remove(points[0])
-
-    # Build the sorted loop
-    while points_set:
-        last_point = sorted_loop[-1]
-        next_points = adj_dict.get(last_point, set())
-        intersection = next_points.intersection(points_set)
-        
-        # Check if the intersection is not empty
-        if intersection: #this was a bug before
-            next_point = intersection.pop()
-        else:
-            next_point = None
-        if not next_point:
-            break
-
-        sorted_loop.append(next_point)
-        points_set.remove(next_point) #key to do
-
-    return sorted_loop
-
-
-def extract_vertices(pipe_loop_ijs): # should be linear time
-    """ This just reduces the space"""
-    if len(pipe_loop_ijs) < 3:  # If there are less than 3 points, all are vertices. Just in case I want to test more or use later
-        return pipe_loop_ijs
-
-    vertices = [pipe_loop_ijs[0]]  # Start with the first point
-
-    for ix in range(1, len(pipe_loop_ijs) - 1): #because we already pull one out
-        prev_i, prev_j = pipe_loop_ijs[ix - 1]
-        i, j = pipe_loop_ijs[ix]
-        next_i, next_j = pipe_loop_ijs[(ix + 1) % len(pipe_loop_ijs)] #cycling at the end
-
-        if (i != prev_i and i != next_i) or (j != prev_j and j != next_j):
-            vertices.append((i, j))
-
-    vertices.append(pipe_loop_ijs[-1])  # Add the last point
-
-    return vertices
-
-
-def get_count_of_os(b,a,search_space) -> int:
+def get_count_of_os(b,a,sij) -> int:
     ############# for each o race trace against
+    Si, Sj = sij
+    s_sym= find_s_symbol(sij,a)
+    string_s = a[Si]
+    string_s = string_s[:Sj] + s_sym + string_s[Sj + 1:]
+    a[Si]= string_s
+
     pipe_loop_ijs = [] 
     for i in range(len(b)):
         for j in range(len(b[0])):
@@ -220,9 +209,6 @@ def get_count_of_os(b,a,search_space) -> int:
 
     count = 0
      
-    """for i in search_space[0]:
-        for j in search_space[1]:"""
-    
     for i in range(len(a)):
         for j in range(len(a[0])):
             oij = (i,j)
@@ -238,9 +224,10 @@ def get_count_of_os(b,a,search_space) -> int:
             else:
                 d[i][j] = f"{BLUE_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{BLUE_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+
     for i in range(len(a)):
         for j in range(len(a[0])):
-            if d[i][j] == "*":
+            if d[i][j] == "*": #should not hit
                 d[i][j] = f"{YELLOW_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{YELLOW_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
             if (i,j) in pipe_loop_ijs:
@@ -273,9 +260,10 @@ def main(file,comment):
     
     steps = 0
     b = [[0]*len(a[0]) for _ in range(len(a))]
+    bbb = [[0]*len(a[0]) for _ in range(len(a))]
     b[s_tup[0]][s_tup[1]] = "S"
     c = ['~'*len(a[0]) for _ in range(len(a))]
-
+    aaa = [[0]*len(a[0]) for _ in range(len(a))]
     s_loop_ijs = set()
 
     stop_flag = False
@@ -287,11 +275,14 @@ def main(file,comment):
             nexts = get_neighbors(a,ci,cj,b)
             next_positions.extend(nexts)
             for n in next_positions:
-                b[n[0]][n[1]] = steps # to check
+                b[n[0]][n[1]]  = steps
+                bbb[n[0]][n[1]] = f"{MAGENTA_AOCTOOLS}{steps}{RESET_AOCTOOLS}" # to check
+                aaa[n[0]][n[1]] = f"{MAGENTA_AOCTOOLS}{a[n[0]][n[1]]}{RESET_AOCTOOLS}"
+
                 s_loop_ijs.add( (n[0], n[1]) )
                 c[n[0]] = ''.join(map(str, b[n[0]]))  #this is broken
             #print_map(c,a)
-            #print_2darrays_side_by_side(b,a)
+            print_2darrays_side_by_side(bbb,a,a1_has_ansi=True,a2_has_ansi=True)
             if s_tup not in nexts:
                 print(f"steps {steps}")
                 cursor_positions = next_positions
@@ -312,15 +303,8 @@ def main(file,comment):
     print(f"furtherst step: {furthest_step}")
 
     print(f"{RED_AOCTOOLS} STARTING  PART TWO {RESET_AOCTOOLS}")
-    #search space we will find the min and max of i's and j's on the loop
-    s_loop_min_i = min(e[0] for e in s_loop_ijs)
-    s_loop_max_i = max(e[0] for e in s_loop_ijs)
-    s_loop_min_j = min(e[1] for e in s_loop_ijs)
-    s_loop_max_j = max(e[1] for e in s_loop_ijs)
 
-    search_space =(range(s_loop_min_i , s_loop_max_i + 1), range(s_loop_min_j, s_loop_max_j + 1) )
-
-    count = get_count_of_os(b,a,search_space)
+    count = get_count_of_os(b,a,s_tup)
     print(f"counts = {count}")
     return count
 
@@ -328,10 +312,11 @@ def main(file,comment):
 def tests():
     """---------------  Part 2 tests ---------------------------"""
     #main('10/2test1.txt',"first test")
-    #main('10/2test2.txt',"second test")
+    main('10/2test2.txt',"second test")
     #main('10/2test3.txt',"third test")
+    #main("10/spiral.txt","spiral")
     #main('10/2testw1.txt', "making the pip be narroweer")
-    main('10/2testw2.txt', "making the pip be narroweer and with junk")
+    #main('10/2testw2.txt', "making the pip be narroweer and with junk")
 
 def part_2():   
     main('10/input.txt',"NA")
