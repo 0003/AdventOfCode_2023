@@ -109,27 +109,53 @@ def get_neighbors(a,i,j,b):
 
 def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
     oi, oj = oij
+    symbol_testing = a[oi][oj]
     inside = True
 
     count_d = collections.Counter()
+
+    ray_casted_pipe = []
+    selected_ray_casted_pipe = []
     for i in pipe_loop_ijs:
-        if i[1] > oj and i[0] == oi and a[i[0]][i[1]] in "|F7LJ":
-            count_d[ a[ i[0]] [i[1]] ] +=1
+        if i[1] > oj and i[0] == oi:
+            sym = a[ i[0]] [i[1] ] 
+            ray_casted_pipe.append(sym) #debugging
+            if sym in "|F7LJ":
+                count_d[ sym ] +=1
+                selected_ray_casted_pipe.append(sym) #debugging
+            
+    pipe_crosses = 0
+    special_crosses = 0
 
-    cF7 = count_d["F"] + count_d["7"] #need even for it to be inside
-    cLJ = count_d["L"] + count_d["J"] #need even for it to be inside
-    c_vertical_pipe =  count_d["|"] #need odd for it to be inside
-
-    #if your regular pipe is even then you're outside
-    if c_vertical_pipe % 2 == 0:
-        inside = not inside # reverse it
-    
-    #if your edge pipe is even then you're outside
-    if cF7 % 2 == 0:
-        inside = not inside
-    
-    if cLJ % 2 == 0:
-        inside = not inside
+    skip_i = False
+    for i in range(len(selected_ray_casted_pipe)):
+        char = selected_ray_casted_pipe[i]
+        if skip_i == True:
+            #this should only occur if we pulled an edge character, there was another edge character that we should skip
+            skip_i = False
+            continue
+        elif char == "|":
+            pipe_crosses += 1
+            skip_i = False
+        elif char in "FJL7":
+            if i + 1 >= len(selected_ray_casted_pipe):
+                return  False # note a closed loop so this should never happen
+                break                            
+            else:                
+                next_two_syms = selected_ray_casted_pipe[i] + selected_ray_casted_pipe[i + 1]
+                if next_two_syms in ("FJ","F7","JL","7F", "L7","LJ"): #some of these are redundant
+                    special_crosses += 1
+                    skip_i =  True
+        
+        #if there is a lone edge case then I think it's not a closed loop.
+    if  not (pipe_crosses % 2 != 0 and special_crosses % 2 == 0 and pipe_crosses > 0) : #even
+        inside = False
+    else:
+        inside == False
+   
+    print(f"{symbol_testing} at {oij} we looked at {''.join(ray_casted_pipe)} \
+          selected { ''.join(selected_ray_casted_pipe)}, which had {pipe_crosses + special_crosses} crosses so inside = {inside}")
+ 
     
     return inside
     
@@ -312,9 +338,9 @@ def main(file,comment):
 def tests():
     """---------------  Part 2 tests ---------------------------"""
     #main('10/2test1.txt',"first test")
-    main('10/2test2.txt',"second test")
+    #main('10/2test2.txt',"second test")
     #main('10/2test3.txt',"third test")
-    #main("10/spiral.txt","spiral")
+    #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk")
 
