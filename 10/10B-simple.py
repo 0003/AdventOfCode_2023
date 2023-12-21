@@ -343,6 +343,7 @@ def tests():
     #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk")
+    main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
 
 def part_2():   
     main('10/input.txt',"NA")
