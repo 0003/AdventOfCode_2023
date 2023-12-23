@@ -72,6 +72,9 @@ def generate_connections(connections):
         extended_connections.add(inverse)
     return extended_connections
 
+def flip(t) -> tuple:
+    return (-t[0],-t[1])
+
 def valid_pipe_connection(a,ci,cj,ni,nj,b):
     # We know S is a valid pipe so it must make a valid loop
     #A pipe connects if either both share an i or a j direction (absolute values)
@@ -80,10 +83,11 @@ def valid_pipe_connection(a,ci,cj,ni,nj,b):
     n = a[ni][nj]
     #check for ground.
     if c !=GROUND[0] and n !=GROUND[0] and b[ni][nj] == 0 and b[ni][nj] != "S":
-        r = symbol_relation(a,ci,cj,ni,nj,flip=True)
+        r = symbol_relation(a,ci,cj,ni,nj,flip=False)
         n_directions = PIPE_D[n]
         c_directions = PIPE_D[c]
-        if r in n_directions:
+
+        if flip(r) in n_directions:
             print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are valid pipe conns because their relation {r} is in {n}\'s {n_directions} and {c}\'s {c_directions}  ')
             return True
         else:
@@ -97,7 +101,7 @@ def get_neighbors(a,i,j,b):
     if not valid_cell(a,i,j):
         raise Exception("This cursor should never been validated")
         return []
-    neighbors = [(i + d[0], j + d[1]) for d in DIRECTIONS if valid_cell(a, i + d[0],j + d[1])] # need to think about this
+    neighbors = [(i + d[0], j + d[1]) for d in PIPE_D[a[i][j]] if valid_cell(a, i + d[0],j + d[1])] # need to think about this
     valid_neighbor_cells = []
     for n in neighbors:
         ni, nj = n
@@ -114,6 +118,9 @@ def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
     oi, oj = oij
     symbol_testing = a[oi][oj]
     inside = True
+    if oi == 0 or oi == len(a) or  oj == 0 or oj == len(a[0]) :
+        print(f"{oij} is on edge")
+        return False
 
     count_d = collections.Counter()
 
@@ -142,6 +149,7 @@ def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
             skip_i = False
         elif char in "FJL7":
             if i + 1 >= len(selected_ray_casted_pipe):
+                print(F"NOT A CLOSED LOOP")
                 return  False # note a closed loop so this should never happen
                 break                            
             else:                
@@ -151,10 +159,11 @@ def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
                     skip_i =  True
         
         #if there is a lone edge case then I think it's not a closed loop.
-    if  not (pipe_crosses % 2 != 0 and special_crosses % 2 == 0 and pipe_crosses > 0) : #even
-        inside = False
+    #if  not (pipe_crosses % 2 != 0 and special_crosses % 2 == 0 and pipe_crosses > 0) : #even
+    if (pipe_crosses + special_crosses) % 2 != 0:               
+        inside = True
     else:
-        inside == False
+        inside = False
    
     print(f"{symbol_testing} at {oij} we looked at {''.join(ray_casted_pipe)} \
           selected { ''.join(selected_ray_casted_pipe)}, which had {pipe_crosses + special_crosses} crosses so inside = {inside}")
@@ -172,8 +181,6 @@ def find_s_symbol(ij,a):
     left = (Si , Sj - 1)
     right = (Si , Sj + 1)
 
-    s_directions = [(-1,0), (1,0), (0,-1),(0,1)]
-    #GET THE RELATION FFROM ABOVE and CHECK IF THE NEIGHBOR SUMBOL MATCHES IT. SO S7  has relation (0,-1) and a 7 has (0,-1) in its Pipe_D
     neighbors_ijs = [top, bottom, left, right] # good
     connecting_neighbors = [False,False,False,False]
 
@@ -182,9 +189,9 @@ def find_s_symbol(ij,a):
         if not valid_cell(a,ni,nj):
             continue # this is either out of range our a "."
         neighbor_symbol = a[ni][nj]
-        relation = symbol_relation(a,Si,Sj,ni,nj,flip=True)
+        relation = symbol_relation(a,Si,Sj,ni,nj,flip=False)
         nr = PIPE_D[neighbor_symbol]
-        if relation in nr:
+        if flip(relation) in nr:
             connecting_neighbors[i] = True
                                 #top bot    left  right
     if connecting_neighbors == [True, True, False, False]:
@@ -328,22 +335,29 @@ def main(file,comment,debug=True):
 def tests():
     """---------------  Part 2 tests ---------------------------"""
     #main('10/2test1.txt',"first test")
-    #main('10/2test2.txt',"second test")
+    main('10/2test2.txt',"second test")
     #main('10/2test3.txt',"third test")
     #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk") #WORKS
     #main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
-    #main('10/edges.txt', "trying to test if my pipe loop works -- this is the key test")
-    #main('10/edges2.txt', "trying to test if my pipe loop works -- this is the key test")
+
+
+def edges():
+    main('10/edges.txt', "trying to test if my pipe loop works -- this is the key test")
+    main('10/edges2.txt', "trying to test if my pipe loop works -- this is the key test")
+    main('10/edges3.txt', "trying to test if my pipe loop works -- this is the key test")
+    main('10/edges4.txt', "trying to test if my pipe loop works -- this is the key test")
 
 
 def part_2():   
     main('10/input.txt',"NA",debug=False)
 
 tests()
-    
-part_2()
+
+#edges()    
+
+#part_2()
 
 
 
