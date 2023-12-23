@@ -178,12 +178,11 @@ def find_s_symbol(ij,a):
 
     for i in range(len(neighbors_ijs)):
         ni, nj = neighbors_ijs[i]
-        ns = a[ni][nj]
-
+        neighbor_symbol = a[ni][nj]
         if not valid_cell(a,ni,nj):
             continue # this is either out of range our a "."
         nr_set = set()
-        for nr in PIPE_D[ns]:
+        for nr in PIPE_D[neighbor_symbol]:
             nr_set.add(nr) ###ned to figure this out
         dir_set = set( [s_directions[i]])
 
@@ -230,14 +229,16 @@ def get_count_of_os(b,a,sij) -> int:
     #pipe_loop_ijs = sort_loop(pipe_loop)
     #pipe_loop_ijs = extract_vertices(pipe_loop_ijs)
     
-    d = [['*']*len(a[0]) for _ in range(len(a))]
-    aa = [['*']*len(a[0]) for _ in range(len(a))]
+    d = [[f'{YELLOW_AOCTOOLS}*{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
+    aa = [[f'{YELLOW_AOCTOOLS}*{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
 
     count = 0
      
-    for i in range(len(a)):
-        for j in range(len(a[0])):
+    for i in range(len(b)):
+        for j in range(len(b[0])):
             oij = (i,j)
+            
+            ## check if point is NOT in the loop
             if oij not in pipe_loop_ijs :
                 if is_point_inside_loop_simple(oij,pipe_loop_ijs,a):
                 #if is_point_inside_loop(oij,pipe_loop_ijs):
@@ -247,10 +248,13 @@ def get_count_of_os(b,a,sij) -> int:
                 else:    
                     d[i][j] = f"{GREEN_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                     aa[i][j] = f"{GREEN_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+            ### This is a point in the loop
             else:
                 d[i][j] = f"{BLUE_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{BLUE_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+            #print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
 
+    """
     for i in range(len(a)):
         for j in range(len(a[0])):
             if d[i][j] == "*": #should not hit
@@ -259,7 +263,8 @@ def get_count_of_os(b,a,sij) -> int:
             if (i,j) in pipe_loop_ijs:
                 d[i][j] = f"{MAGENTA_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{MAGENTA_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
-
+    """
+    print(f"{RED_AOCTOOLS} In the loop {BLUE_AOCTOOLS} The loop {GREEN_AOCTOOLS} Out the loop. {RESET_AOCTOOLS}")
     print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     return count
 
@@ -286,10 +291,9 @@ def main(file,comment):
     
     steps = 0
     b = [[0]*len(a[0]) for _ in range(len(a))]
-    bbb = [[0]*len(a[0]) for _ in range(len(a))]
+    bbb = [[f'{YELLOW_AOCTOOLS}{0}{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
     b[s_tup[0]][s_tup[1]] = "S"
-    c = ['~'*len(a[0]) for _ in range(len(a))]
-    aaa = [[0]*len(a[0]) for _ in range(len(a))]
+    aaa = [[f'{YELLOW_AOCTOOLS}{char}{RESET_AOCTOOLS}' for char in string] for string in a]
     s_loop_ijs = set()
 
     stop_flag = False
@@ -306,9 +310,7 @@ def main(file,comment):
                 aaa[n[0]][n[1]] = f"{MAGENTA_AOCTOOLS}{a[n[0]][n[1]]}{RESET_AOCTOOLS}"
 
                 s_loop_ijs.add( (n[0], n[1]) )
-                c[n[0]] = ''.join(map(str, b[n[0]]))  #this is broken
-            #print_map(c,a)
-            print_2darrays_side_by_side(bbb,a,a1_has_ansi=True,a2_has_ansi=True)
+            print_2darrays_side_by_side(bbb,aaa,a1_has_ansi=True,a2_has_ansi=True)
             if s_tup not in nexts:
                 print(f"steps {steps}")
                 cursor_positions = next_positions
@@ -319,7 +321,6 @@ def main(file,comment):
                 return
     print(f"Total steps {steps}.")
     print("~~~~~PRINTING FINAL MAP~~~~")
-    #print_map(c,a)
     print_2darrays_side_by_side(b,a)
     furthest_step  = 0
     for row_vs in b:
@@ -342,8 +343,10 @@ def tests():
     #main('10/2test3.txt',"third test")
     #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
-    #main('10/2testw2.txt', "making the pip be narroweer and with junk")
-    main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
+    #main('10/2testw2.txt', "making the pip be narroweer and with junk") #WORKS
+    #main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
+    main('10/edges.txt', "trying to test if my pipe loop works -- this is the key test")
+
 
 def part_2():   
     main('10/input.txt',"NA")
