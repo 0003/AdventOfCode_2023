@@ -6,10 +6,10 @@ from aoc_tools import *
 PIPES = '|-FJL7S' #make sure code is case sensitive
 GROUND = '.' #cant be in pipe and ground
 
-DIRECTIONS = [(1,  0), # up receive up 
-             ( -1,  0), # Down  
-             ( 0, 1), # Left
-             ( 0, -1)] # right
+DIRECTIONS = [(-1,  0), # up receive up 
+             ( 1,  0), # Down  
+             ( 0, -1), # Left
+             ( 0, 1)] # right
 
 PIPE_D = {"|": (DIRECTIONS[0], DIRECTIONS[1]), # | up  (-1,  0) and down ( 1,  0)
           "-": (DIRECTIONS[2], DIRECTIONS[3]), #_ left  ( 0, -1) and right ( 0,  1)
@@ -21,20 +21,23 @@ PIPE_D = {"|": (DIRECTIONS[0], DIRECTIONS[1]), # | up  (-1,  0) and down ( 1,  0
           }
 
 """ Operation Methods"""
-def symbol_relation(a,ci,cj,ni,nj) -> tuple:
+def symbol_relation(a,ci,cj,ni,nj,flip=False) -> tuple:
     #this is their relation ni - ci, nj -ci
     c = PIPE_D[a[ci][cj]] #direction tuple
     n = PIPE_D[a[ni][nj]]
-    if ni > ci: #Bigger index means you need to add +1 to C
+    if ni > ci and nj == cj: #Bigger index means you need to add +1 to C
         r = (1 , 0)
-    elif ni < ci: #smaller index means you need to subtractt 1
+    elif ni < ci and nj == cj : #smaller index means you need to subtractt 1
         r = (-1, 0)
-    elif nj > cj: #bigger mean yoy need to add 1 to cj to move right
+    elif nj > cj and ni == ci: #bigger mean yoy need to add 1 to cj to move right
         r = (0, 1)
-    elif nj < cj: #smaller means you need to subtract 1 to cj to move left
+    elif nj < cj and ni == ci: #smaller means you need to subtract 1 to cj to move left
         r = (0, -1)
     else:
         raise Exception("Should not happen")
+    
+    if flip == True:
+        r = (-r[0],-r[1])
     return r
 
 def get_starting_location(a) -> tuple:
@@ -77,10 +80,10 @@ def valid_pipe_connection(a,ci,cj,ni,nj,b):
     n = a[ni][nj]
     #check for ground.
     if c !=GROUND[0] and n !=GROUND[0] and b[ni][nj] == 0 and b[ni][nj] != "S":
-        r = symbol_relation(a,ci,cj,ni,nj)
+        r = symbol_relation(a,ci,cj,ni,nj,flip=True)
         n_directions = PIPE_D[n]
-        c_directions = generate_connections(PIPE_D[c])
-        if r in n_directions and r in c_directions:
+        c_directions = PIPE_D[c]
+        if r in n_directions:
             print(f'{c} at i: {ci} and j: {cj} and {n} at i: {ni} and j: {nj} are valid pipe conns because their relation {r} is in {n}\'s {n_directions} and {c}\'s {c_directions}  ')
             return True
         else:
@@ -169,25 +172,19 @@ def find_s_symbol(ij,a):
     left = (Si , Sj - 1)
     right = (Si , Sj + 1)
 
-#this is in opposite order
-    s_directions = [(1,0), (-1,0), (0,-1),(0,1)]
-
-    #GET THE RELATION FFROM ABOVE and CHECK IF THE NEIGHBOR SUMBOL MATCHES IT. SO S7  has relation (0,1) and a 7 has (0,1) in its Pipe_D
-    neighbors_ijs = [top, bottom, left, right]
+    s_directions = [(-1,0), (1,0), (0,-1),(0,1)]
+    #GET THE RELATION FFROM ABOVE and CHECK IF THE NEIGHBOR SUMBOL MATCHES IT. SO S7  has relation (0,-1) and a 7 has (0,-1) in its Pipe_D
+    neighbors_ijs = [top, bottom, left, right] # good
     connecting_neighbors = [False,False,False,False]
 
     for i in range(len(neighbors_ijs)):
-        ni, nj = neighbors_ijs[i]
-        neighbor_symbol = a[ni][nj]
+        ni, nj = neighbors_ijs[i] #good
         if not valid_cell(a,ni,nj):
             continue # this is either out of range our a "."
-        nr_set = set()
-        for nr in PIPE_D[neighbor_symbol]:
-            nr_set.add(nr) ###ned to figure this out
-        dir_set = set( [s_directions[i]])
-
-        intersection = nr_set & dir_set
-        if intersection:
+        neighbor_symbol = a[ni][nj]
+        relation = symbol_relation(a,Si,Sj,ni,nj,flip=True)
+        nr = PIPE_D[neighbor_symbol]
+        if relation in nr:
             connecting_neighbors[i] = True
                                 #top bot    left  right
     if connecting_neighbors == [True, True, False, False]:
@@ -254,16 +251,6 @@ def get_count_of_os(b,a,sij) -> int:
                 aa[i][j] = f"{BLUE_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
             #print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
 
-    """
-    for i in range(len(a)):
-        for j in range(len(a[0])):
-            if d[i][j] == "*": #should not hit
-                d[i][j] = f"{YELLOW_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
-                aa[i][j] = f"{YELLOW_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
-            if (i,j) in pipe_loop_ijs:
-                d[i][j] = f"{MAGENTA_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
-                aa[i][j] = f"{MAGENTA_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
-    """
     print(f"{RED_AOCTOOLS} In the loop {BLUE_AOCTOOLS} The loop {GREEN_AOCTOOLS} Out the loop. {RESET_AOCTOOLS}")
     print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     return count
@@ -278,7 +265,7 @@ def get_input(fi):
         data = [i.strip() for i in f.readlines()]
         return data
     
-def main(file,comment):
+def main(file,comment,debug=True):
 
     print(f"\n----------- {file} ------------------ :",comment)
     a = get_input(file)
@@ -310,7 +297,8 @@ def main(file,comment):
                 aaa[n[0]][n[1]] = f"{MAGENTA_AOCTOOLS}{a[n[0]][n[1]]}{RESET_AOCTOOLS}"
 
                 s_loop_ijs.add( (n[0], n[1]) )
-            print_2darrays_side_by_side(bbb,aaa,a1_has_ansi=True,a2_has_ansi=True)
+                if debug:
+                    print_2darrays_side_by_side(bbb,aaa,a1_has_ansi=True,a2_has_ansi=True)
             if s_tup not in nexts:
                 print(f"steps {steps}")
                 cursor_positions = next_positions
@@ -332,6 +320,7 @@ def main(file,comment):
     print(f"{RED_AOCTOOLS} STARTING  PART TWO {RESET_AOCTOOLS}")
 
     count = get_count_of_os(b,a,s_tup)
+    print(f"furtherst step: {furthest_step}")
     print(f"counts = {count}")
     return count
 
@@ -345,15 +334,16 @@ def tests():
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk") #WORKS
     #main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
-    main('10/edges.txt', "trying to test if my pipe loop works -- this is the key test")
+    #main('10/edges.txt', "trying to test if my pipe loop works -- this is the key test")
+    #main('10/edges2.txt', "trying to test if my pipe loop works -- this is the key test")
 
 
 def part_2():   
-    main('10/input.txt',"NA")
+    main('10/input.txt',"NA",debug=False)
 
 tests()
     
-#part_2()
+part_2()
 
 
 
