@@ -20,6 +20,8 @@ PIPE_D = {"|": (DIRECTIONS[0], DIRECTIONS[1]), # | up  (-1,  0) and down ( 1,  0
           "S": set(DIRECTIONS) #S ALL that are valid?                                
           }
 
+cool_pipes = {"F":"┌", "L":"└", "7" : "┐",  "J":"┘", "-" : "─", "S" : "┼", "." : ".", "|" : "│"}
+
 """ Operation Methods"""
 def symbol_relation(a,ci,cj,ni,nj,flip=False) -> tuple:
     #this is their relation ni - ci, nj -ci
@@ -117,12 +119,11 @@ def get_neighbors(a,i,j,b):
 def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
     oi, oj = oij
     symbol_testing = a[oi][oj]
-    inside = True
-    if oi == 0 or oi == len(a) or  oj == 0 or oj == len(a[0]) :
+    inside = False
+
+    if oi == 0 or oi == len(a) - 1 or  oj == 0 or oj == len(a[0]):
         print(f"{oij} is on edge")
         return False
-
-    count_d = collections.Counter()
 
     ray_casted_pipe = []
     selected_ray_casted_pipe = []
@@ -131,42 +132,44 @@ def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
             sym = a[ i[0]] [i[1] ] 
             ray_casted_pipe.append(sym) #debugging
             if sym in "|F7LJ":
-                count_d[ sym ] +=1
                 selected_ray_casted_pipe.append(sym) #debugging
             
-    pipe_crosses = 0
-    special_crosses = 0
-
-    skip_i = False
+    special_char = None
     for i in range(len(selected_ray_casted_pipe)):
         char = selected_ray_casted_pipe[i]
-        if skip_i == True:
-            #this should only occur if we pulled an edge character, there was another edge character that we should skip
-            skip_i = False
-            continue
-        elif char == "|":
-            pipe_crosses += 1
-            skip_i = False
-        elif char in "FJL7":
-            if i + 1 >= len(selected_ray_casted_pipe):
-                print(F"NOT A CLOSED LOOP")
-                return  False # note a closed loop so this should never happen
-                break                            
-            else:                
-                next_two_syms = selected_ray_casted_pipe[i] + selected_ray_casted_pipe[i + 1]
-                if next_two_syms in ("FJ","F7","JL","7F", "L7","LJ"): #some of these are redundant
-                    special_crosses += 1
-                    skip_i =  True
-        
-        #if there is a lone edge case then I think it's not a closed loop.
-    #if  not (pipe_crosses % 2 != 0 and special_crosses % 2 == 0 and pipe_crosses > 0) : #even
-    if (pipe_crosses + special_crosses) % 2 != 0:               
-        inside = True
-    else:
-        inside = False
-   
+        if char == "|":
+            inside = not inside
+            special_char = None
+        elif char in "F7LJ" and not special_char:
+            special_char = char
+        elif char in "F7LJ" and special_char:
+            if special_char == "F":
+                if char == "J":
+                    inside = not inside
+                    special_char = None
+                else:
+                    special_char = char
+            elif special_char == "L":
+                if char == "7":
+                    inside = not inside
+                    special_char = None
+                else:
+                    special_char = char
+            elif special_char == "7":
+                if char == "L":
+                    inside = not inside
+                    special_char = None
+                else:
+                    special_char = char
+            elif special_char == "J":
+                if char == "L":
+                    inside = not inside
+                    special_char = None
+                else:
+                    special_char = char
+
     print(f"{symbol_testing} at {oij} we looked at {''.join(ray_casted_pipe)} \
-          selected { ''.join(selected_ray_casted_pipe)}, which had {pipe_crosses + special_crosses} crosses so inside = {inside}")
+          selected { ''.join(selected_ray_casted_pipe)}, inside = {inside}")
  
     
     return inside
@@ -235,7 +238,7 @@ def get_count_of_os(b,a,sij) -> int:
     
     d = [[f'{YELLOW_AOCTOOLS}*{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
     aa = [[f'{YELLOW_AOCTOOLS}*{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
-
+    aaa = [[f'{YELLOW_AOCTOOLS}*{RESET_AOCTOOLS}']*len(a[0]) for _ in range(len(a))]
     count = 0
      
     for i in range(len(b)):
@@ -249,17 +252,24 @@ def get_count_of_os(b,a,sij) -> int:
                     count += 1
                     d[i][j] = f"{RED_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                     aa[i][j] = f"{RED_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+                    aaa[i][j] = f"{RED_AOCTOOLS}{cool_pipes[a[i][j]]}{RESET_AOCTOOLS}"
+                    
                 else:    
                     d[i][j] = f"{GREEN_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                     aa[i][j] = f"{GREEN_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+                    aaa[i][j] = f"{GREEN_AOCTOOLS}{cool_pipes[a[i][j]]}{RESET_AOCTOOLS}"
             ### This is a point in the loop
             else:
                 d[i][j] = f"{BLUE_AOCTOOLS}{b[i][j]}{RESET_AOCTOOLS}"
                 aa[i][j] = f"{BLUE_AOCTOOLS}{a[i][j]}{RESET_AOCTOOLS}"
+                aaa[i][j] = f"{BLUE_AOCTOOLS}{cool_pipes[a[i][j]]}{RESET_AOCTOOLS}"
             #print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
 
     print(f"{RED_AOCTOOLS} In the loop {BLUE_AOCTOOLS} The loop {GREEN_AOCTOOLS} Out the loop. {RESET_AOCTOOLS}")
     print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
+    print_2darrays_side_by_side(d,aaa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
+    render_ansi_text_to_image(aa,filename='10/image.png')
+    #render_ansi_text_to_image(aaa,filename='10/image-pipes.png')
     return count
 
 """ Utility Functions """
@@ -335,12 +345,14 @@ def main(file,comment,debug=True):
 def tests():
     """---------------  Part 2 tests ---------------------------"""
     #main('10/2test1.txt',"first test")
-    main('10/2test2.txt',"second test")
-    #main('10/2test3.txt',"third test")
+    #main('10/2test2.txt',"second test")
+    main('10/2test3.txt',"third test")
     #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk") #WORKS
     #main('10/upanddown.txt', "trying to test if my pipe loop works -- this is the key test")
+    #main('10/reddit.txt', "reddit this has ... on ends")
+
 
 
 def edges():
@@ -353,11 +365,11 @@ def edges():
 def part_2():   
     main('10/input.txt',"NA",debug=False)
 
-tests()
+#tests()
 
 #edges()    
 
-#part_2()
+part_2()
 
 
 

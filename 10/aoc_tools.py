@@ -1,4 +1,55 @@
 import re
+from PIL import Image, ImageDraw, ImageFont
+
+def render_ansi_text_to_image(text_lines, filename='my_colored_text.png'):
+    # Define the ANSI color codes with both \033 and \x1b variations
+    color_codes = {
+        '\033[91m': (255, 0, 0), '\x1b[91m': (255, 0, 0),    # Red
+        '\033[92m': (0, 255, 0), '\x1b[92m': (0, 255, 0),    # Green
+        '\033[93m': (255, 255, 0), '\x1b[93m': (255, 255, 0),# Yellow
+        '\033[94m': (0, 0, 255), '\x1b[94m': (0, 0, 255),    # Blue
+        '\033[95m': (255, 0, 255), '\x1b[95m': (255, 0, 255),# Magenta
+        '\033[96m': (0, 255, 255), '\x1b[96m': (0, 255, 255),# Cyan
+        '\033[97m': (255, 255, 255), '\x1b[97m': (255, 255, 255) # White
+    }
+    reset_code = '\033[0m'  # Reset color code (commonly used)
+
+    # Create an image with a black background
+    width, height = 1280, 10 + 15 * len(text_lines)
+    image = Image.new('RGB', (width, height), "black")
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.load_default()
+    x, y = 10, 10
+    line_height = 15
+
+    # Process each line (list of strings) and render it with its respective color
+    for line in text_lines:
+        for segment in line:
+            # Attempt to find the color code at the beginning of the segment
+            for code, code_color in color_codes.items():
+                if segment[:len(code)] == code:  # Directly compare the beginning of the segment with the color code
+                    color = code_color
+                    char = segment[len(code):len(code)+1]  # Assume the character is right after the code
+                    draw.text((x, y), char, font=font, fill=color)
+                    x += font.getsize(char)[0]  # Move x to the end of the last character
+                    break
+        x = 10  # Reset x to the start of the line for the next line
+        y += line_height  # Move to the next line
+    imagebox = image.getbbox()
+    cropped = image.crop(imagebox)
+    # Save the image
+    cropped.save(filename)
+
+# Example usage:
+text_lines = [
+    ['\033[94m-\033[0m', '\033[92m+\033[0m'],
+    ['\033[93m@\033[0m', '\033[91m#\033[0m'],
+    # ... more lines as needed ...
+]
+
+# Call the function with the list of colored text lines and the desired filename
+render_ansi_text_to_image(text_lines)
+
 
 # ANSI escape codes for some colors
 RED_AOCTOOLS = '\033[91m'
