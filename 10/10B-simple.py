@@ -1,6 +1,5 @@
 '''--- Day 10: Pipe Maze ---'''
 #works
-import collections
 from aoc_tools import *
 
 PIPES = '|-FJL7S' #make sure code is case sensitive
@@ -155,18 +154,8 @@ def is_point_inside_loop_simple(oij, pipe_loop_ijs,a) -> bool:
                     special_char = None
                 else:
                     special_char = char
-            elif special_char == "7":
-                if char == "L":
-                    inside = not inside
-                    special_char = None
-                else:
-                    special_char = char
-            elif special_char == "J":
-                if char == "L":
-                    inside = not inside
-                    special_char = None
-                else:
-                    special_char = char
+            else:
+                special_char = char
 
     print(f"{symbol_testing} at {oij} we looked at {''.join(ray_casted_pipe)} \
           selected { ''.join(selected_ray_casted_pipe)}, inside = {inside}")
