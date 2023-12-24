@@ -265,12 +265,14 @@ def get_count_of_os(b,a,sij) -> int:
                 aaa[i][j] = f"{BLUE_AOCTOOLS}{cool_pipes[a[i][j]]}{RESET_AOCTOOLS}"
             #print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
 
+    aa[Si][Sj] =  f"{MAGENTA_AOCTOOLS}{a[Si][Sj]}{RESET_AOCTOOLS}"
+    aaa[Si][Sj] =  f"{MAGENTA_AOCTOOLS}{a[Si][Sj]}{RESET_AOCTOOLS}"
     print(f"{RED_AOCTOOLS} In the loop {BLUE_AOCTOOLS} The loop {GREEN_AOCTOOLS} Out the loop. {RESET_AOCTOOLS}")
     print_2darrays_side_by_side(d,aa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     print_2darrays_side_by_side(d,aaa,a1_has_ansi=True, a2_has_ansi=True) #since d has ANSI colors need to do this to make it print okay
     render_ansi_text_to_image(aa,filename='10/image.png')
     #render_ansi_text_to_image(aaa,filename='10/image-pipes.png')
-    return count
+    return (count, s_sym, sij)
 
 """ Utility Functions """
 #Using AOC_Tools
@@ -365,7 +367,7 @@ def edges():
 def part_2():   
     main('10/input.txt',"NA",debug=False)
 
-#tests()
+tests()
 
 #edges()    
 
