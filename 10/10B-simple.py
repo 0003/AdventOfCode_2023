@@ -337,7 +337,7 @@ def tests():
     """---------------  Part 2 tests ---------------------------"""
     #main('10/2test1.txt',"first test")
     #main('10/2test2.txt',"second test")
-    main('10/2test3.txt',"third test")
+    #main('10/2test3.txt',"third test")
     #main("10/spiral.txt","spiral") #works
     #main('10/2testw1.txt', "making the pip be narroweer")
     #main('10/2testw2.txt', "making the pip be narroweer and with junk") #WORKS
@@ -360,7 +360,7 @@ tests()
 
 #edges()    
 
-part_2()
+#part_2()
 
 
 
