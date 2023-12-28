@@ -1,6 +1,5 @@
 """--- Day 12: Hot Springs ---
 """
-#works
 
 """
 operational : .
@@ -85,9 +84,9 @@ def get_input(f):
         rows = []
         for ix in fi:
             _ = ix.split(" ")
-            s = _[0]
-            tuple_of_counts = [int(x) for x in  _[1].strip().split(",")]
-            rows.append((s, tuple_of_counts))
+            s = "?".join([_[0]] * 5)
+            list_of_counts = [int(x) for x in  _[1].strip().split(",")] * 5
+            rows.append((s, list_of_counts))
     return rows
 
 def main(f):
@@ -113,5 +112,6 @@ def main(f):
 
 #main("test.txt")
 #main("test2.txt")
+main("test3.txt")
 
-main("input.txt")
+#main("input.txt")
