@@ -58,8 +58,6 @@ def find_reflection_index_vertical_or_horizontal(pattern):
     if reflected_ix_vertical != "NO REFLECTION FOUND":
         return (reflected_ix_vertical,True)
     else:
-    #case there is a horizontal pattern
-    #transpose and to leverage function
         pattern_transposed = list(zip(*pattern))
         reflected_ix_horizontal = check_for_reflection(pattern_transposed)
 
