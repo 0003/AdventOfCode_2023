@@ -3,7 +3,6 @@
 
 import numpy as np
 import copy
-import functools
 
 STONE = "O"
 ROCK = "#"
