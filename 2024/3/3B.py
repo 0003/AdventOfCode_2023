@@ -64,15 +64,17 @@ def main(f):
             m = int(mul.group(1)) * int(mul.group(2))
             sums_of_muls += m
             print(f"{mul.group(0)} = {m} : {sums_of_muls}")
-
+    print(len(s))
+    print(lookup)
     print(sums_of_muls)
     return sums_of_muls
 
-main('test1.txt')
+#main('test1.txt')
 #main('test2.txt')
-#main('input.txt')
+main('input.txt')
 
 """
 Dont work
 139619281
+22485852
 """
