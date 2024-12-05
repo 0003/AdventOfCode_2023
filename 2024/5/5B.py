@@ -8,7 +8,26 @@ rules = defaultdict(list)
 rule_pattern = r"(\d+)\|(\d+)"
 
 updates = []
-valid_updates = []
+invalid_updates = []
+fixed_updates = []
+
+def fix_update(update,rules):
+    trigger = True
+    while trigger:
+        trigger = False
+        for i, n in enumerate(update):
+            for value in update[:i]:
+                if value in rules[n]:
+                    trigger = True
+                    update.remove(value)
+                    update.insert(i,value)
+                    #print(f"New Update = {update}")
+                    break
+            if trigger:
+                break
+    return update
+                
+
 
 def test_update(update,rules):
     for i, n in enumerate(update):
@@ -39,13 +58,16 @@ def main(f):
     rules, updates = get_input(f)
     score = 0
     for update in updates:
-        if test_update(update,rules):
+        if not test_update(update,rules):
             
-            valid_updates.append(update)
-            middle = get_middle(update)
+            invalid_updates.append(update)
+            fixed_update = fix_update(update,rules)
+            fixed_updates.append(fixed_update)
+            middle = get_middle(fixed_update)
             score += middle
-            print(f"{update} is valid. The {middle = } {score = }")
+            print(f"{update} was invalid. But is now {fixed_update} The {middle = } {score = }")
     print(f"{score = }")
+    return
 
 #main("test.txt")
 main("input.txt")
