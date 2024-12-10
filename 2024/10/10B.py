@@ -90,15 +90,17 @@ def main(f):
     for start in starts:
         print(f"Climbing from {start = } and there are {valid_trails = }")
         trails_ = climb(grid,start)
-        for e in trails_:
-            if (start,e) not in valid_trails:
-                valid_trails.add((start,e))
+        for end in trails_:
+            if (start,end) not in valid_trails:
+                valid_trails.add((start,end))
         print(f"{trails_ =}")
         print(f"{valid_trails = }")
-        trails_score += len(valid_trails)
-    print(f"Final {trails_score=} and {len(valid_trails) = }")
+        trails_score += len(trails_)
+    print(f"Final {trails_score = }")
 
 #main('test.txt')
 #main('test1.txt')
 #main('test2.txt')
+#main('testB1.txt')
+#main('testB2.txt')
 main('input.txt')
