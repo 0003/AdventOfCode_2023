@@ -33,7 +33,8 @@ def main(f):
 #for each node of type
 #get mirrors ij
 #determine if on grid
-#add to symbol ij if match
+#add to symbol ij if match (2 spossibilities for i,j add...
+#the other symbol and the other is the antinode)
 #get clarity on antidote counting
     
     return
