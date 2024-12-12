@@ -5,21 +5,42 @@ from collections import defaultdict
 
 PADDING = "#"
 
+def get_perimeter(garden,i,j):
+    symbol = garden[i][j]
+    symbol_neighbors = 0
+    if garden[i-1][j] == symbol:
+        symbol_neighbors += 1
+    if garden[i+1][j] == symbol:
+        symbol_neighbors += 1
+    if garden[i][j-1] == symbol:
+        symbol_neighbors += 1
+    if garden[i][j+1] == symbol:
+        symbol_neighbors += 1
+    perimeter = 4 - symbol_neighbors
+
+    return perimeter
+
+def get_area(id : int, lookup : dict):
+
+    return len(lookup[id])
+
+
 def print_garden(garden):
     for i, row in enumerate(garden):
         for j, c in enumerate(row):
             cprint(c, 'light_green', attrs=["dark"], end="")
         print(end='\n')
+
     return
 
 
 def get_input(f):
     with open(f"2024/12/{f}") as fi:
-
         garden = [PADDING + line.strip() + PADDING for line in fi.readlines()]
         garden = [PADDING * len(garden[0])] + garden + [PADDING * len(garden[0])] 
         cprint(garden, 'light_green', attrs=["dark"])
         print_garden(garden)
+
         return garden
 
 def main(f):
@@ -50,6 +71,7 @@ def main(f):
         for ij in ijs:
             if ij not in visited_ijs:
                 visited_ijs.add( (i,j) )
+                id_plots_dict[id] = [(i,j)]
                 traverse = set() ###start here
                                     
             #traverse and get visited
