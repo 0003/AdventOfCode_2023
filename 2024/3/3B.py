@@ -21,26 +21,24 @@ def do_check(lookup_dict,ix,dos,donts):
     else:
         return lookup_dict[ix]
 
-def make_lookup_dict(dos,donts):
-    dos = [0] + dos
-    lookup = {}                   ############### do this
-    i, j = 0, 0
-    current = None
+def get_target_index_in_list(tgt : int, li : list[int]): #coould make bisect here but day 3 
+    inlist = False
+    closest_ix = 0
+    for i, e in enumerate(li):
+        if e < tgt:
+            inlist = True
+            closest_ix = e
+    return (inlist, closest_ix )
 
-    while i < len(dos) or j < len(donts):
-          #have a good do  and #donts out      OR    #dont has not come up
-          #should not happen oftent
-        if i < len(dos) and (j >= len(donts) or dos[i] <= donts[j]):
-            current = dos[i]
-            i += 1
-        #main driver go until you hit a dont
-        elif j < len(donts):
-            if current is not None:
-                for x in range(current,donts[j] + 1):
-                    lookup[x] = True
-                current = None
-            j += 1
-    return lookup
+def do_check(mul,dos,donts):
+    mulix = mul.span()[0]
+    dosix =  get_target_index_in_list(mulix,dos) #index or None
+    dontsix = get_target_index_in_list(mulix,donts) #index or None
+    
+    if dosix[0]:
+        return
+
+
 
 def get_input(f):
     with open(f"2024/3/{f}") as fi:
@@ -50,27 +48,27 @@ def get_input(f):
 def main(f):
     li = get_input(f)
     s = ''.join(li)
+    print(f"{len(s) = } which should be 1")
 
     sums_of_muls = 0
-
     muls = list(p.finditer(s))
-    dos = list(i.span()[0] for i in do_p.finditer(s))
+    dos = [0] + list(i.span()[0] for i in do_p.finditer(s))
     donts = list(i.span()[0] for i in dont_p.finditer(s))
-    lookup = make_lookup_dict(dos,donts)
 
     for mul in muls:
-        print(mul)
-        if do_check(lookup,mul.span()[0],dos,donts):
+        #print(mul)
+        if do_check(mul,dos,donts):
             m = int(mul.group(1)) * int(mul.group(2))
             sums_of_muls += m
             print(f"{mul.group(0)} = {m} : {sums_of_muls}")
     print(len(s))
-    print(lookup)
     print(sums_of_muls)
     return sums_of_muls
 
 #main('test1.txt')
 #main('test2.txt')
+#main('test.txt')
+
 main('input.txt')
 
 """

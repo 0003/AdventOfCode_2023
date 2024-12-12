@@ -32,10 +32,10 @@ def main(f):
     stones = get_input(f)
     for i in range(25):
         stones = blink(stones)
-        #print(f"Blinks = {i+1}",stones,f"{len(stones) = }")
+        print(f"Blinks = {i+1}",stones, f"{len(stones) = }")
 
     print(f"{len(stones) = }")
     return stones
 
-#main("test.txt")
-main("input.txt")
+main("test.txt")
+#main("input.txt")
