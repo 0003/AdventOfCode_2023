@@ -2,9 +2,25 @@
 #wip
 from itertools import cycle
 import re
+from math import lcm , gcd
 
 PATTERN = r'\d+\d+'
 CYCLE_ACTIONS = ["A","B","P","X"]
+
+def solve_game(game : tuple[tuple[int,int],tuple[int,int],tuple[int,int]]) -> int:
+    a, b, p = game
+    ax, ay = a[0], a[1] #3 coins
+    bx, by = b[0], b[1] #1 coins
+    px, py = p[0], p[1]    
+
+    cost = 0
+    cheap_x, token_x = (ax,3) if a[0] // b[0] < 3 else (bx,1)
+    cheap_y, token_y = (ay,3) if a[0] // b[0] < 3 else (by,1)
+    
+    not_solved_x = True
+    while not_solved_x:
+        px // cheap_x
+    
 
 def get_game_value(s):
     m = re.findall(PATTERN,s)
