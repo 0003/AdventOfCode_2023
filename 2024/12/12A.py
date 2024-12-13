@@ -68,11 +68,12 @@ def main(f):
     visited_ijs = set() #ij
     for symbol_char in symbols_dict.keys():
         ijs = symbols_dict[symbol_char]
+        same_symbols = set()
         for ij in ijs:
-            if ij not in visited_ijs:
-                visited_ijs.add( (i,j) )
-                id_plots_dict[id] = [(i,j)]
-                traverse = set() ###start here
+            ij
+                
+
+
                                     
             #traverse and get visited
             #for each visited throw into a id_plots_dict KEY : ID Values: List of 2 element Tuple
