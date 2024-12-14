@@ -1,5 +1,5 @@
 
-#wip
+#works
 from itertools import cycle
 import re
 from math import lcm , gcd
@@ -7,20 +7,40 @@ from math import lcm , gcd
 PATTERN = r'\d+\d+'
 CYCLE_ACTIONS = ["A","B","P","X"]
 
-def solve_game(game : tuple[tuple[int,int],tuple[int,int],tuple[int,int]]) -> int:
-    a, b, p = game
-    ax, ay = a[0], a[1] #3 coins
-    bx, by = b[0], b[1] #1 coins
-    px, py = p[0], p[1]    
+class DFS:
+    def __init__(self, game : tuple[tuple[int,int],tuple[int,int],tuple[int,int]]):
+        self.a, self.b, self.p = game
+        self.ax, self.ay = self.a[0], self.a[1] #3 coins
+        self.bx, self.by = self.b[0], self.b[1] #1 coins
+        self.px, self.py = self.p[0], self.p[1]
+        
+    def run(self):
+            
+        visited = set()
+        stack = [(0,0,0,0,0)] # distance_x, distance_y, cost,Aqty,Bqty
+        cost_qtys = [] #cost, #Aqty, #Bqty
 
-    cost = 0
-    cheap_x, token_x = (ax,3) if a[0] // b[0] < 3 else (bx,1)
-    cheap_y, token_y = (ay,3) if a[0] // b[0] < 3 else (by,1)
-    
-    not_solved_x = True
-    while not_solved_x:
-        px // cheap_x
-    
+        while stack:
+            distance_x, distance_y, cost,Aqty,Bqty = stack.pop()
+            if distance_x == self.px and distance_y == self.py:
+                cost_qtys.append((cost,Aqty,Bqty))
+                continue
+            elif distance_x > self.px and distance_y > self.py:
+                continue
+            else:
+                at = (distance_x + self.ax, distance_y + self.ay , cost + 3, Aqty + 1, Bqty )
+                bt = (distance_x + self.bx, distance_y + self.by , cost + 1, Aqty, Bqty + 1 )
+                for t in (at,bt):
+                    if t not in visited:
+                        visited.add(t)
+                        stack.append(t)
+        cost_qtys = sorted(cost_qtys,key= lambda x: x[0])
+        #print(f"{cost_qtys = }")
+
+        if len(cost_qtys) > 0:
+            return cost_qtys[0][0]
+        else:
+            return 0
 
 def get_game_value(s):
     m = re.findall(PATTERN,s)
@@ -36,8 +56,8 @@ def main(f):
     lines = get_input(f)
     games = [] # tuples of A (x,y) B (x,y) P (x,y)
     cycle_action_ = cycle(CYCLE_ACTIONS)
-
-    for line in lines:
+    costs = 0 
+    for i, line in enumerate(lines):
         cycle_action = next(cycle_action_)
 
         if cycle_action == "A":
@@ -47,9 +67,14 @@ def main(f):
         elif cycle_action == "P":
             p = get_game_value(line)
         elif cycle_action == "X":
-            games.append((a,b,p))
-
-    return
+            game = (a,b,p)
+            games.append(game)
+            gdfs = DFS(game)
+            cost = gdfs.run()
+            print(f"{i = } {cost = }")
+            costs += cost
+    print(f"Answer: {costs = }")
+    return costs
         
         
         
