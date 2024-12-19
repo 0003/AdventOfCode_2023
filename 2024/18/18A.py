@@ -1,4 +1,4 @@
-#wip
+#works
 import heapq #need to learn about this
 from math import inf 
 
@@ -45,20 +45,25 @@ class Djij():
 
     def djik(self,x=0,y=0):
         visited = set() # (x,y)
-        queue = [(x,y)]
-        current_node = (x,y)
+        queue = [ (0, (x,y)) ]
         while queue:
-            next_nodes = []
-            current_node_dist = self.nodes.setdefault(current_node,1)
-            next_nodes.extend(self.get_next_nodes(current_node))
+            current_node_dist, current_node = heapq.heappop(queue)
 
-            for next_node in next_nodes:
-                if next_node not in visited: #need to revisit this
-                    queue.append(next_node)
-                self.nodes[(next_node)] = min(self.nodes.get(next_node,inf),current_node_dist+1)
+            if current_node in visited:
+                continue
 
-            current_node = queue.pop(0)
             visited.add(current_node)
+
+            next_nodes =  self.get_next_nodes(current_node)
+            for next_node in next_nodes:
+                if next_node not in visited: 
+                    next_dist =  current_node_dist + 1
+                    if next_dist < self.nodes.get(next_node,inf):
+                        self.nodes[next_node] = next_dist
+                        heapq.heappush(queue, (next_dist, next_node))
+                        #self.dprint()
+                        print(" ")
+
             print(len(queue))
 
         print(f"{self.nodes[(self.max_x,self.max_y)] = }")
@@ -79,13 +84,13 @@ def main(f,n,size=(6,6)):
     d = Djij(coods,n,size=size)
     d.dprint()
     d.djik()
-    d.dprint()
+
     print(f"{d.nodes.get(size) = }")
 
     return
     
 
-main('test.txt',12,(6,6))
+#main('test.txt',12,(6,6))
 
-#main('input.txt',1024, (70,70))
+main('input.txt',1024, (70,70))
 
